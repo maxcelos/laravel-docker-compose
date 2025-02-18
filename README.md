@@ -7,9 +7,9 @@
 
 Clone this repository
 ```shell
-git clone https://github.com/savageglobalmarketing/lionshare-core.git
+git clone https://github.com/maxcelos/laravel-docker-compose.git
 
-cd lionshare-core
+cd laravel-docker-compose
 ```
 
 Open it in your IDE, search for `lscore` in all files and replace it with the name of your app, for example `myapp`.
