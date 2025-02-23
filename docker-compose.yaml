@@ -15,14 +15,14 @@ services:
       - ./docker/nginx/ssl:/etc/nginx/ssl
     working_dir: /var/www/vhost/
     ports:
-      - '443:443'
-      - '9008:9008'
+      - "443:443"
+      - "9008:9008"
     networks:
       - lscore
     labels:
-      - 'traefik.http.routers.${PROJECT_NAME}_nginx.rule=HostRegexp(`${APP_DOMAIN}`, `{subdomain:[a-z]+.${APP_DOMAIN}}`)'
-      - 'traefik.http.routers.${PROJECT_NAME}_nginx.priority=1'
-      - 'traefik.docker.network=proxy'
+      - "traefik.http.routers.${PROJECT_NAME}_nginx.rule=HostRegexp(`${APP_DOMAIN}`, `{subdomain:[a-z]+.${APP_DOMAIN}}`)"
+      - "traefik.http.routers.${PROJECT_NAME}_nginx.priority=1"
+      - "traefik.docker.network=proxy"
 
   mailpit:
     image: axllent/mailpit:latest
@@ -41,31 +41,31 @@ services:
     container_name: "${PROJECT_NAME}_minio"
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: '${MINIO_ROOT_USER:-minioadmin}'
-      MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD:-minioadmin}'
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin}"
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - 'lscore_minio:/data'
+      - "lscore_minio:/data"
     networks:
       - lscore
 
   soketi:
-    container_name: '${PROJECT_NAME}_soketi'
+    container_name: "${PROJECT_NAME}_soketi"
     restart: unless-stopped
-    image: 'quay.io/soketi/soketi:0.17-16-alpine'
+    image: "quay.io/soketi/soketi:0.17-16-alpine"
     ports:
-      - '${SOKETI_PORT:-6001}:6001'
-      - '${SOKETI_METRICS_SERVER_PORT:-9601}:9601'
+      - "${SOKETI_PORT:-6001}:6001"
+      - "${SOKETI_METRICS_SERVER_PORT:-9601}:9601"
     environment:
-      SOKETI_DEBUG: '${DEBUG:-1}'
-      DEFAULT_APP_ID: '${PUSHER_APP_ID:-some-id}'
-      DEFAULT_APP_KEY: '${PUSHER_APP_KEY:-app-key}'
-      DEFAULT_APP_SECRET: '${PUSHER_APP_SECRET:-some-app-secret}'
-      PUSHER_HOST: '${PUSHER_HOST:-127.0.0.1}'
-      PUSHER_PORT: '${PUSHER_PORT:-6001}'
-      PUSHER_SCHEME: 'https'
+      SOKETI_DEBUG: "${DEBUG:-1}"
+      DEFAULT_APP_ID: "${PUSHER_APP_ID:-some-id}"
+      DEFAULT_APP_KEY: "${PUSHER_APP_KEY:-app-key}"
+      DEFAULT_APP_SECRET: "${PUSHER_APP_SECRET:-some-app-secret}"
+      PUSHER_HOST: "${PUSHER_HOST:-127.0.0.1}"
+      PUSHER_PORT: "${PUSHER_PORT:-6001}"
+      PUSHER_SCHEME: "https"
       METRICS_SERVER_PORT: ${SOKETI_METRICS_SERVER_PORT:-9601}
       DEFAULT_APP_ENABLE_CLIENT_MESSAGES: ${DEFAULT_APP_ENABLE_CLIENT_MESSAGES:-false}
     volumes:
@@ -85,15 +85,15 @@ services:
       context: ./docker/php
       dockerfile: Dockerfile
     environment:
-      PHP_MEMORY_LIMIT: '512M'
-      COMPOSER_MEMORY_LIMIT: '-1'
+      PHP_MEMORY_LIMIT: "512M"
+      COMPOSER_MEMORY_LIMIT: "-1"
     user: 501:501
     volumes:
       - ./:/var/www/vhost/lscore:cached
     working_dir: /var/www/vhost/lscore
     ports:
-      - '9003:9003'
-      - '5173:5173'
+      - "9003:9003"
+      - "5173:5173"
 
     networks:
       - lscore
@@ -102,23 +102,23 @@ services:
     image: redis:latest
     container_name: "${PROJECT_NAME}_redis"
     ports:
-      - '6379:6379'
+      - "6379:6379"
     volumes:
-      - 'lscore_redis:/data'
+      - "lscore_redis:/data"
     networks:
       - lscore
 
   postgres:
     image: postgres:15.3-alpine
-    container_name:  "${PROJECT_NAME}_postgres"
+    container_name: "${PROJECT_NAME}_postgres"
     restart: always
     environment:
-      POSTGRES_PASSWORD: '${DB_PASSWORD}'
-      POSTGRES_USER: '${DB_USERNAME}'
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_USER: "${DB_USERNAME}"
     ports:
-      - '${FORWARD_DB_PORT:-5433}:5432'
+      - "${FORWARD_DB_PORT:-5433}:5432"
     volumes:
-      - 'lscore_postgres:/var/lib/postgresql/data'
+      - "lscore_postgres:/var/lib/postgresql/data"
     networks:
       - lscore
 
@@ -134,7 +134,7 @@ services:
     ports:
       - 8081:80
     volumes:
-      - 'lscore_pgadmin:/var/lib/pgadmin'
+      - "lscore_pgadmin:/var/lib/pgadmin"
     networks:
       - lscore
 
@@ -148,10 +148,51 @@ services:
       - --api.insecure=true
       - --log.level=debug
     volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - "/var/run/docker.sock:/var/run/docker.sock"
     ports:
-      - '80:80'
-      - '8080:8080'
+      - "80:80"
+      - "8080:8080"
+    networks:
+      - lscore
+
+  sonarqube:
+    image: sonarqube:25.2.0.102705-community
+    container_name: "${PROJECT_NAME}_sonarqube"
+    hostname: sonarqube
+    read_only: true
+    depends_on:
+      sonarqube-db:
+        condition: service_healthy
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_temp:/opt/sonarqube/temp
+    ports:
+      - "9090:9000"
+    networks:
+      - lscore
+
+  sonarqube-db:
+    image: postgres:15
+    container_name: "${PROJECT_NAME}_sonarqube-db"
+    hostname: postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonarqubedb:/var/lib/postgresql
+      - sonarqubedb_data:/var/lib/postgresql/data
     networks:
       - lscore
 
@@ -171,3 +212,10 @@ volumes:
 
   lscore_minio:
     driver: local
+
+  lscore_sonarqube_data:
+  lscore_sonarqube_temp:
+  lscore_sonarqube_extensions:
+  lscore_sonarqube_logs:
+  lscore_sonarqubedb:
+  lscore_sonarqubedb_data:
