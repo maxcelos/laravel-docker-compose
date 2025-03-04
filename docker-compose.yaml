@@ -168,10 +168,10 @@ services:
       SONAR_JDBC_USERNAME: sonar
       SONAR_JDBC_PASSWORD: sonar
     volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
-      - sonarqube_temp:/opt/sonarqube/temp
+      - lscore_sonarqube_data:/opt/sonarqube/data
+      - lscore_sonarqube_extensions:/opt/sonarqube/extensions
+      - lscore_sonarqube_logs:/opt/sonarqube/logs
+      - lscore_sonarqube_temp:/opt/sonarqube/temp
     ports:
       - "9090:9000"
     networks:
@@ -191,8 +191,8 @@ services:
       POSTGRES_PASSWORD: sonar
       POSTGRES_DB: sonar
     volumes:
-      - sonarqubedb:/var/lib/postgresql
-      - sonarqubedb_data:/var/lib/postgresql/data
+      - lscore_sonarqubedb:/var/lib/postgresql
+      - lscore_sonarqubedb_data:/var/lib/postgresql/data
     networks:
       - lscore
 
