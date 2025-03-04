@@ -8,6 +8,15 @@ include .env
 help:
 	@echo "Welcome to $(PROJECT_NAME) IT Support, have you tried turning it off and on again?"
 
+
+sonarqube: run-tests
+	bash docker/scripts/sonarscan.sh
+
+run-tests:
+	docker compose exec app php artisan test \
+		--coverage-clover=coverage.xml \
+		--coverage-html=build/coverage
+		
 test:
 	@docker exec $(PROJECT_NAME)_php ./vendor/bin/pest --parallel
 
